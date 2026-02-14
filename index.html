@@ -3,176 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agendamento 💅</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>Michelly Vanessa Unhas</title>
 
 <style>
 body{
-  font-family: Arial, sans-serif;
-  background-image: url('https://images.unsplash.com/photo-1604654894610-df63bc536371');
-  background-size: cover;
-  background-position: center;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  margin:0;
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:url("https://images.unsplash.com/photo-1604654894610-df63bc536371") no-repeat center center fixed;
+    background-size:cover;
 }
 
-.overlay{
-  background: rgba(255,255,255,0.92);
-  padding:25px;
-  border-radius:15px;
-  width:90%;
-  max-width:400px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+.container{
+    background:rgba(255,255,255,0.95);
+    max-width:500px;
+    margin:40px auto;
+    padding:25px;
+    border-radius:15px;
 }
 
-h3{
-  text-align:center;
-  color:#c2185b;
+h1{
+    text-align:center;
+    color:#d63384;
 }
 
-input, select, button{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
+label{
+    font-weight:bold;
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    margin:8px 0 15px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
 }
 
 button{
-  background:#c2185b;
-  color:white;
-  font-weight:bold;
-  border:none;
-  cursor:pointer;
+    width:100%;
+    padding:12px;
+    background:#d63384;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:disabled{
+    background:gray;
 }
 </style>
 </head>
+
 <body>
 
-<div class="overlay">
+<div class="container">
+<h1>💅 Michelly Vanessa Unhas</h1>
 
-<h3>Agendamento 💅</h3>
+<form id="formAgendamento">
 
-<input type="text" id="nome" placeholder="Nome">
-<input type="text" id="telefone" placeholder="Telefone">
-<input type="date" id="data">
+<label>Nome</label>
+<input type="text" id="nome" required>
 
-<select id="horario">
-<option value="">Selecione o horário</option>
+<label>Data</label>
+<input type="date" id="data" required>
+
+<label>Horário</label>
+<select id="horario" required>
+<option value="">Selecione</option>
 </select>
 
-<select id="servico">
-<option value="">Selecione o serviço</option>
-<option>Manicure</option>
-<option>Pedicure</option>
+<label>Serviço</label>
+<select id="servico" required>
 <option>Mão e Pé</option>
+<option>Unha em Gel</option>
+<option>Unha em Fibra</option>
 </select>
 
-<button onclick="agendar()">Confirmar Agendamento</button>
+<button type="submit" id="btnAgendar">Agendar</button>
 
+</form>
 </div>
 
 <script>
 
-/* SUA CONFIG */
-const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+const horarios = {
+    "sexta":["18:00","20:00"],
+    "sabado":["07:00","09:00","11:00","14:00","17:00","19:00"]
+};
 
-const dataInput = document.getElementById("data");
-const horarioSelect = document.getElementById("horario");
-
-function gerarHorarios(dataSelecionada){
-  const dia = new Date(dataSelecionada + "T00:00:00").getDay();
-
-  // Segunda a Sexta
-  if(dia >= 1 && dia <= 5){
-    return ["19:00","20:00"];
-  }
-
-  // Sábado
-  if(dia === 6){
-    return ["08:00","10:00","14:00","16:00","18:00","19:00","20:00"];
-  }
-
-  return [];
-}
-
-dataInput.addEventListener("change", async () => {
-
-  const dataSelecionada = dataInput.value;
-  if(!dataSelecionada) return;
-
-  const { data: registros } = await supabaseClient
-    .from("appointments")
-    .select("horario")
-    .eq("data", dataSelecionada);
-
-  const ocupados = registros ? registros.map(r => r.horario) : [];
-  const todos = gerarHorarios(dataSelecionada);
-  const disponiveis = todos.filter(h => !ocupados.includes(h));
-
-  horarioSelect.innerHTML = '<option value="">Selecione o horário</option>';
-
-  if(disponiveis.length === 0){
-    horarioSelect.innerHTML += '<option>Sem horários disponíveis</option>';
-    return;
-  }
-
-  disponiveis.forEach(h=>{
-    const opt = document.createElement("option");
-    opt.value = h;
-    opt.textContent = h;
-    horarioSelect.appendChild(opt);
-  });
-
-});
+const selectHorario = document.getElementById("horario");
+const inputData = document.getElementById("data");
 
 function formatarDataBR(dataISO){
-  const partes = dataISO.split("-");
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    const partes = dataISO.split("-");
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
-function agendar(){
+function atualizarHorarios(){
+    selectHorario.innerHTML = '<option value="">Selecione</option>';
 
-  const nome = document.getElementById("nome").value;
-  const telefone = document.getElementById("telefone").value;
-  const data = document.getElementById("data").value;
-  const horario = document.getElementById("horario").value;
-  const servico = document.getElementById("servico").value;
+    const dataSelecionada = new Date(inputData.value + "T00:00:00");
+    const diaSemana = dataSelecionada.getDay();
 
-  if(!nome || !telefone || !data || !horario || !servico){
-    alert("Preencha todos os campos!");
-    return;
-  }
+    let lista = [];
 
-  const dataBR = formatarDataBR(data);
+    if(diaSemana === 5) lista = horarios.sexta;
+    if(diaSemana === 6) lista = horarios.sabado;
 
-  const mensagem =
-`Olá 💅 Novo agendamento!
+    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+
+    lista.forEach(h=>{
+        const ocupado = agendamentos.some(a => a.data === inputData.value && a.horario === h);
+
+        if(!ocupado){
+            const option = document.createElement("option");
+            option.value = h;
+            option.textContent = h;
+            selectHorario.appendChild(option);
+        }
+    });
+}
+
+inputData.addEventListener("change", atualizarHorarios);
+
+document.getElementById("formAgendamento").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const btn = document.getElementById("btnAgendar");
+    btn.disabled = true;
+    btn.innerText = "Agendando...";
+
+    const nome = document.getElementById("nome").value;
+    const data = document.getElementById("data").value;
+    const horario = document.getElementById("horario").value;
+    const servico = document.getElementById("servico").value;
+
+    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+
+    // 🔒 BLOQUEIO DUPLICIDADE
+    const existe = agendamentos.some(a => a.data === data && a.horario === horario);
+
+    if(existe){
+        alert("Esse horário já foi agendado!");
+        btn.disabled = false;
+        btn.innerText = "Agendar";
+        return;
+    }
+
+    agendamentos.push({nome, data, horario, servico});
+    localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+
+    atualizarHorarios();
+
+    const mensagem = `Olá 💅 Novo agendamento!
 
 Nome: ${nome}
-Data: ${dataBR}
+Data: ${formatarDataBR(data)}
 Horário: ${horario}
 Serviço: ${servico}`;
 
-  const url = "https://wa.me/5511964657571?text=" + encodeURIComponent(mensagem);
+    const numero = "5511964657571";
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
 
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  supabaseClient
-    .from("appointments")
-    .insert([{ nome, telefone, data, horario, servico }]);
-}
+    window.location.href = url;
+});
 
 </script>
 
