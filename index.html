@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mãos De Fada 💅</title>
+<title>Agendamento 💅</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -27,137 +27,69 @@ body{
   box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
-h2{
-  text-align:center;
-  color:#c2185b;
-}
-
-input, select{
+input, select, button{
   width:100%;
   padding:10px;
   margin:6px 0;
-  border-radius:10px;
+  border-radius:8px;
   border:1px solid #ccc;
 }
 
 button{
-  width:100%;
-  padding:12px;
   background:#c2185b;
   color:white;
-  border:none;
-  border-radius:10px;
   font-weight:bold;
-  cursor:pointer;
-  margin-top:10px;
+  border:none;
 }
 </style>
 </head>
-
 <body>
 
 <div class="container">
-<h2>Agendamento 💅</h2>
 
-<input type="text" id="nome" placeholder="Nome">
-<input type="text" id="telefone" placeholder="Telefone">
-<input type="date" id="data">
+<h3>Agendamento 💅</h3>
 
-<select id="horario">
+<form id="formAgendamento">
+
+<input type="text" id="nome" placeholder="Nome" required>
+<input type="text" id="telefone" placeholder="Telefone" required>
+<input type="date" id="data" required>
+
+<select id="horario" required>
 <option value="">Selecione o horário</option>
+<option>19:00</option>
+<option>20:00</option>
 </select>
 
-<select id="servico">
+<select id="servico" required>
 <option value="">Selecione o serviço</option>
 <option>Manicure</option>
 <option>Pedicure</option>
 <option>Mão e Pé</option>
 </select>
 
-<button onclick="agendar()">Confirmar Agendamento</button>
+<button type="submit">Confirmar Agendamento</button>
+
+</form>
+
 </div>
 
 <script>
 
-/* ===== SUA CONFIGURAÇÃO SUPABASE ===== */
+/* SUA CONFIG */
 const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-/* ===================================== */
 
-const dataInput = document.getElementById("data");
-const horarioSelect = document.getElementById("horario");
+document.getElementById("formAgendamento").addEventListener("submit", async function(e){
 
-function gerarHorarios(dataSelecionada){
-  const dia = new Date(dataSelecionada + "T00:00:00").getDay();
+  e.preventDefault(); // impede reload
 
-  if(dia >= 1 && dia <= 5){
-    return ["19:00"];
-  }
-
-  if(dia === 6){
-    return ["08:00","10:00","14:00","16:00","18:00","20:00"];
-  }
-
-  return [];
-}
-
-dataInput.addEventListener("change", async () => {
-
-  const dataSelecionada = dataInput.value;
-  if(!dataSelecionada) return;
-
-  const { data, error } = await supabaseClient
-    .from("appointments")
-    .select("horario")
-    .eq("data", dataSelecionada);
-
-  if(error){
-    alert("Erro ao buscar horários");
-    return;
-  }
-
-  const ocupados = data.map(item => item.horario);
-  const todos = gerarHorarios(dataSelecionada);
-  const disponiveis = todos.filter(h => !ocupados.includes(h));
-
-  horarioSelect.innerHTML = '<option value="">Selecione o horário</option>';
-
-  if(disponiveis.length === 0){
-    horarioSelect.innerHTML += '<option>Sem horários disponíveis</option>';
-    return;
-  }
-
-  disponiveis.forEach(h=>{
-    const opt = document.createElement("option");
-    opt.value = h;
-    opt.textContent = h;
-    horarioSelect.appendChild(opt);
-  });
-
-});
-
-async function agendar(){
-
-  const nome = document.getElementById("nome").value.trim();
-  const telefone = document.getElementById("telefone").value.trim();
+  const nome = document.getElementById("nome").value;
+  const telefone = document.getElementById("telefone").value;
   const data = document.getElementById("data").value;
   const horario = document.getElementById("horario").value;
   const servico = document.getElementById("servico").value;
-
-  if(!nome || !telefone || !data || !horario || !servico){
-    alert("Preencha todos os campos!");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("appointments")
-    .insert([{ nome, telefone, data, horario, servico }]);
-
-  if(error){
-    alert("Esse horário já foi agendado!");
-    return;
-  }
 
   const mensagem =
 `Olá 💅 Novo agendamento!
@@ -170,8 +102,15 @@ Serviço: ${servico}`;
 
   const url = `https://api.whatsapp.com/send?phone=5511964657571&text=${encodeURIComponent(mensagem)}`;
 
+  // 🔥 ABRE WHATSAPP IMEDIATAMENTE
   window.location.href = url;
-}
+
+  // 🔥 SALVA NO BANCO EM SEGUNDO PLANO
+  await supabaseClient
+    .from("appointments")
+    .insert([{ nome, telefone, data, horario, servico }]);
+
+});
 
 </script>
 
