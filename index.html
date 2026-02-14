@@ -49,28 +49,24 @@ button{
 
 <h3>Agendamento 💅</h3>
 
-<form id="formAgendamento">
+<input type="text" id="nome" placeholder="Nome">
+<input type="text" id="telefone" placeholder="Telefone">
+<input type="date" id="data">
 
-<input type="text" id="nome" placeholder="Nome" required>
-<input type="text" id="telefone" placeholder="Telefone" required>
-<input type="date" id="data" required>
-
-<select id="horario" required>
+<select id="horario">
 <option value="">Selecione o horário</option>
 <option>19:00</option>
 <option>20:00</option>
 </select>
 
-<select id="servico" required>
+<select id="servico">
 <option value="">Selecione o serviço</option>
 <option>Manicure</option>
 <option>Pedicure</option>
 <option>Mão e Pé</option>
 </select>
 
-<button type="submit">Confirmar Agendamento</button>
-
-</form>
+<button onclick="agendar()">Confirmar Agendamento</button>
 
 </div>
 
@@ -81,15 +77,18 @@ const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-document.getElementById("formAgendamento").addEventListener("submit", async function(e){
-
-  e.preventDefault(); // impede reload
+function agendar(){
 
   const nome = document.getElementById("nome").value;
   const telefone = document.getElementById("telefone").value;
   const data = document.getElementById("data").value;
   const horario = document.getElementById("horario").value;
   const servico = document.getElementById("servico").value;
+
+  if(!nome || !telefone || !data || !horario || !servico){
+    alert("Preencha todos os campos!");
+    return;
+  }
 
   const mensagem =
 `Olá 💅 Novo agendamento!
@@ -100,17 +99,21 @@ Data: ${data}
 Horário: ${horario}
 Serviço: ${servico}`;
 
-  const url = `https://api.whatsapp.com/send?phone=5511964657571&text=${encodeURIComponent(mensagem)}`;
+  const url = "https://wa.me/5511964657571?text=" + encodeURIComponent(mensagem);
 
-  // 🔥 ABRE WHATSAPP IMEDIATAMENTE
-  window.location.href = url;
+  // 🔥 MÉTODO INFALÍVEL
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-  // 🔥 SALVA NO BANCO EM SEGUNDO PLANO
-  await supabaseClient
+  // salva no banco depois (não interfere no redirecionamento)
+  supabaseClient
     .from("appointments")
     .insert([{ nome, telefone, data, horario, servico }]);
-
-});
+}
 
 </script>
 
