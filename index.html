@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Michelly Vanessa Unhas</title>
+<title>Michelly Pessoa Agendamentos</title>
 
 <style>
 body{
@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-    background:rgba(255,255,255,0.95);
+    background:rgba(255,255,255,0.96);
     max-width:500px;
     margin:40px auto;
     padding:25px;
@@ -24,10 +24,6 @@ body{
 h1{
     text-align:center;
     color:#d63384;
-}
-
-label{
-    font-weight:bold;
 }
 
 input, select{
@@ -58,26 +54,23 @@ button:disabled{
 <body>
 
 <div class="container">
-<h1>💅 Michelly Vanessa Unhas</h1>
+<h1>💅 Michelly Pessoa Agendamentos</h1>
 
 <form id="formAgendamento">
 
-<label>Nome</label>
-<input type="text" id="nome" required>
+<input type="text" id="nome" placeholder="Nome" required>
 
-<label>Data</label>
 <input type="date" id="data" required>
 
-<label>Horário</label>
 <select id="horario" required>
-<option value="">Selecione</option>
+<option value="">Selecione o horário</option>
 </select>
 
-<label>Serviço</label>
 <select id="servico" required>
 <option>Mão e Pé</option>
+<option>Pedicure</option>
+<option>Manicure</option>
 <option>Unha em Gel</option>
-<option>Unha em Fibra</option>
 </select>
 
 <button type="submit" id="btnAgendar">Agendar</button>
@@ -85,90 +78,111 @@ button:disabled{
 </form>
 </div>
 
-<script>
+<!-- Firebase -->
+<script type="module">
+  // 🔹 Import Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const horarios = {
-    "sexta":["18:00","20:00"],
-    "sabado":["07:00","09:00","11:00","14:00","17:00","19:00"]
-};
+  // 🔹 Firebase config já com os dados do seu projeto
+  const firebaseConfig = {
+    apiKey: "AIzaSyDr30gr-1zVrkA9Vk3QTOc9-pzbGB0zDpE",
+    authDomain: "maosdefada.firebaseapp.com",
+    projectId: "maosdefada",
+    storageBucket: "maosdefada.firebasestorage.app",
+    messagingSenderId: "9299274038",
+    appId: "1:9299274038:web:1617789c2ca2a08dfc6b97"
+  };
 
-const selectHorario = document.getElementById("horario");
-const inputData = document.getElementById("data");
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-function formatarDataBR(dataISO){
-    const partes = dataISO.split("-");
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
-}
+  const inputData = document.getElementById("data");
+  const selectHorario = document.getElementById("horario");
+  const form = document.getElementById("formAgendamento");
+  const btn = document.getElementById("btnAgendar");
 
-function atualizarHorarios(){
-    selectHorario.innerHTML = '<option value="">Selecione</option>';
+  const horarios = {
+    5:["18:00","20:00"], // sexta
+    6:["07:00","09:00","11:00","14:00","17:00","19:00"] // sábado
+  };
 
-    const dataSelecionada = new Date(inputData.value + "T00:00:00");
-    const diaSemana = dataSelecionada.getDay();
+  function formatarBR(dataISO){
+      const [ano, mes, dia] = dataISO.split("-");
+      return `${dia}/${mes}/${ano}`;
+  }
 
-    let lista = [];
+  async function atualizarHorarios(){
+      selectHorario.innerHTML = '<option value="">Selecione o horário</option>';
+      if(!inputData.value) return;
 
-    if(diaSemana === 5) lista = horarios.sexta;
-    if(diaSemana === 6) lista = horarios.sabado;
+      const diaSemana = new Date(inputData.value+"T00:00:00").getDay();
+      const lista = horarios[diaSemana] || [];
 
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+      // 🔒 Buscar horários já agendados no Firestore
+      const q = query(collection(db, "agendamentos"), where("data","==",inputData.value));
+      const snapshot = await getDocs(q);
+      const ocupados = snapshot.docs.map(d => d.data().horario);
 
-    lista.forEach(h=>{
-        const ocupado = agendamentos.some(a => a.data === inputData.value && a.horario === h);
+      lista.forEach(h => {
+          if(!ocupados.includes(h)){
+              const option = document.createElement("option");
+              option.value = h;
+              option.textContent = h;
+              selectHorario.appendChild(option);
+          }
+      });
+  }
 
-        if(!ocupado){
-            const option = document.createElement("option");
-            option.value = h;
-            option.textContent = h;
-            selectHorario.appendChild(option);
-        }
-    });
-}
+  inputData.addEventListener("change", atualizarHorarios);
 
-inputData.addEventListener("change", atualizarHorarios);
+  form.addEventListener("submit", async (e)=>{
+      e.preventDefault();
 
-document.getElementById("formAgendamento").addEventListener("submit", function(e){
-    e.preventDefault();
+      if(btn.disabled) return;
 
-    const btn = document.getElementById("btnAgendar");
-    btn.disabled = true;
-    btn.innerText = "Agendando...";
+      const nome = document.getElementById("nome").value.trim();
+      const data = inputData.value;
+      const horario = selectHorario.value;
+      const servico = document.getElementById("servico").value;
 
-    const nome = document.getElementById("nome").value;
-    const data = document.getElementById("data").value;
-    const horario = document.getElementById("horario").value;
-    const servico = document.getElementById("servico").value;
+      if(!nome || !data || !horario || !servico){
+          alert("Preencha todos os campos!");
+          return;
+      }
 
-    const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+      btn.disabled = true;
+      btn.innerText = "Processando...";
 
-    // 🔒 BLOQUEIO DUPLICIDADE
-    const existe = agendamentos.some(a => a.data === data && a.horario === horario);
+      // 🔒 Checar duplicidade no Firestore
+      const q = query(collection(db,"agendamentos"), where("data","==",data), where("horario","==",horario));
+      const snapshot = await getDocs(q);
+      if(!snapshot.empty){
+          alert("⚠ Esse horário já foi agendado!");
+          btn.disabled = false;
+          btn.innerText = "Agendar";
+          atualizarHorarios();
+          return;
+      }
 
-    if(existe){
-        alert("Esse horário já foi agendado!");
-        btn.disabled = false;
-        btn.innerText = "Agendar";
-        return;
-    }
+      // 🔹 Inserir no Firestore
+      await addDoc(collection(db,"agendamentos"),{
+          nome,
+          data,
+          horario,
+          servico,
+          criadoEm: new Date()
+      });
 
-    agendamentos.push({nome, data, horario, servico});
-    localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+      atualizarHorarios();
 
-    atualizarHorarios();
+      // 🔹 Enviar para WhatsApp
+      const mensagem = `Olá 💅 Novo agendamento!\n\nNome: ${nome}\nData: ${formatarBR(data)}\nHorário: ${horario}\nServiço: ${servico}`;
+      const numero = "5511964657571";
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+      window.location.href = url;
 
-    const mensagem = `Olá 💅 Novo agendamento!
-
-Nome: ${nome}
-Data: ${formatarDataBR(data)}
-Horário: ${horario}
-Serviço: ${servico}`;
-
-    const numero = "5511964657571";
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-
-    window.location.href = url;
-});
-
+  });
 </script>
 
 </body>
