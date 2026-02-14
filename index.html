@@ -10,7 +10,9 @@
 <style>
 body{
   font-family: Arial, sans-serif;
-  background:#fde4ec;
+  background-image: url('https://images.unsplash.com/photo-1604654894610-df63bc536371');
+  background-size: cover;
+  background-position: center;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -18,13 +20,18 @@ body{
   margin:0;
 }
 
-.container{
-  background:white;
+.overlay{
+  background: rgba(255,255,255,0.92);
   padding:25px;
   border-radius:15px;
   width:90%;
   max-width:400px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+h3{
+  text-align:center;
+  color:#c2185b;
 }
 
 input, select, button{
@@ -40,12 +47,13 @@ button{
   color:white;
   font-weight:bold;
   border:none;
+  cursor:pointer;
 }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="overlay">
 
 <h3>Agendamento 💅</h3>
 
@@ -55,8 +63,6 @@ button{
 
 <select id="horario">
 <option value="">Selecione o horário</option>
-<option>19:00</option>
-<option>20:00</option>
 </select>
 
 <select id="servico">
@@ -77,6 +83,60 @@ const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+const dataInput = document.getElementById("data");
+const horarioSelect = document.getElementById("horario");
+
+function gerarHorarios(dataSelecionada){
+  const dia = new Date(dataSelecionada + "T00:00:00").getDay();
+
+  // Segunda a Sexta
+  if(dia >= 1 && dia <= 5){
+    return ["19:00","20:00"];
+  }
+
+  // Sábado
+  if(dia === 6){
+    return ["08:00","10:00","14:00","16:00","18:00","19:00","20:00"];
+  }
+
+  return [];
+}
+
+dataInput.addEventListener("change", async () => {
+
+  const dataSelecionada = dataInput.value;
+  if(!dataSelecionada) return;
+
+  const { data: registros } = await supabaseClient
+    .from("appointments")
+    .select("horario")
+    .eq("data", dataSelecionada);
+
+  const ocupados = registros ? registros.map(r => r.horario) : [];
+  const todos = gerarHorarios(dataSelecionada);
+  const disponiveis = todos.filter(h => !ocupados.includes(h));
+
+  horarioSelect.innerHTML = '<option value="">Selecione o horário</option>';
+
+  if(disponiveis.length === 0){
+    horarioSelect.innerHTML += '<option>Sem horários disponíveis</option>';
+    return;
+  }
+
+  disponiveis.forEach(h=>{
+    const opt = document.createElement("option");
+    opt.value = h;
+    opt.textContent = h;
+    horarioSelect.appendChild(opt);
+  });
+
+});
+
+function formatarDataBR(dataISO){
+  const partes = dataISO.split("-");
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
 function agendar(){
 
   const nome = document.getElementById("nome").value;
@@ -90,18 +150,18 @@ function agendar(){
     return;
   }
 
+  const dataBR = formatarDataBR(data);
+
   const mensagem =
 `Olá 💅 Novo agendamento!
 
 Nome: ${nome}
-Telefone: ${telefone}
-Data: ${data}
+Data: ${dataBR}
 Horário: ${horario}
 Serviço: ${servico}`;
 
   const url = "https://wa.me/5511964657571?text=" + encodeURIComponent(mensagem);
 
-  // 🔥 MÉTODO INFALÍVEL
   const link = document.createElement("a");
   link.href = url;
   link.target = "_blank";
@@ -109,7 +169,6 @@ Serviço: ${servico}`;
   link.click();
   document.body.removeChild(link);
 
-  // salva no banco depois (não interfere no redirecionamento)
   supabaseClient
     .from("appointments")
     .insert([{ nome, telefone, data, horario, servico }]);
