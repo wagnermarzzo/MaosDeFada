@@ -3,80 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mãos De Fada</title>
+<title>Mãos De Fada 💅</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body {
+*{box-sizing:border-box;}
+
+body{
   margin:0;
   font-family:'Poppins',sans-serif;
   overflow:hidden;
 }
 
-.slider {
+/* SLIDE FEMININO LUXO */
+.slider{
   position:fixed;
   width:100%;
   height:100vh;
   background-size:cover;
   background-position:center;
-  animation:slide 18s infinite;
+  animation:slide 21s infinite;
 }
 
-@keyframes slide {
-  0% {background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
-  33% {background-image:url('https://images.unsplash.com/photo-1604654894610-df63bc536371');}
-  66% {background-image:url('https://images.unsplash.com/photo-1596464716127-f2a82984de30');}
-  100% {background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
+@keyframes slide{
+  0%{background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
+  33%{background-image:url('https://images.unsplash.com/photo-1604654894610-df63bc536371');}
+  66%{background-image:url('https://images.unsplash.com/photo-1596464716127-f2a82984de30');}
+  100%{background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
 }
 
-.overlay {
+.overlay{
   position:fixed;
   width:100%;
   height:100vh;
-  background:rgba(255,255,255,0.85);
+  background:linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(252,228,236,0.9));
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
-.container {
+.container{
   background:white;
-  padding:40px;
+  padding:35px;
   border-radius:25px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.2);
+  box-shadow:0 20px 50px rgba(0,0,0,0.25);
   width:90%;
-  max-width:400px;
+  max-width:420px;
   text-align:center;
 }
 
-h1 {
-  color:#d81b60;
+h1{
+  color:#c2185b;
+  margin-bottom:20px;
 }
 
-input, select {
+input,select{
   width:100%;
   padding:12px;
   margin:8px 0;
-  border-radius:20px;
-  border:1px solid #ddd;
+  border-radius:25px;
+  border:1px solid #eee;
+  font-size:14px;
 }
 
-button {
+button{
   width:100%;
   padding:14px;
-  background:linear-gradient(45deg,#ec407a,#d81b60);
+  background:linear-gradient(45deg,#ec407a,#ad1457);
   border:none;
   color:white;
-  font-weight:bold;
+  font-weight:600;
   border-radius:30px;
   cursor:pointer;
-  margin-top:10px;
+  margin-top:12px;
+  transition:.3s;
 }
 
-button:hover {
+button:hover{
   transform:scale(1.05);
 }
 </style>
@@ -88,21 +93,22 @@ button:hover {
 
 <div class="overlay">
 <div class="container">
+
 <h1>Mãos De Fada 💅</h1>
 
-<input type="text" id="nome" placeholder="Seu nome" required>
-<input type="text" id="telefone" placeholder="Seu telefone" required>
+<input type="text" id="nome" placeholder="Seu nome">
+<input type="text" id="telefone" placeholder="Seu telefone">
 
-<input type="date" id="data" required>
+<input type="date" id="data">
 <select id="horario">
 <option value="">Selecione o horário</option>
 </select>
 
 <select id="servico">
 <option value="">Tipo de serviço</option>
-<option value="Só Mão">Só Mão</option>
-<option value="Só Pé">Só Pé</option>
-<option value="Mão e Pé">Mão e Pé</option>
+<option>Só Mão</option>
+<option>Só Pé</option>
+<option>Mão e Pé</option>
 </select>
 
 <button onclick="agendar()">Confirmar Agendamento</button>
@@ -111,48 +117,66 @@ button:hover {
 </div>
 
 <script>
+
+/* ====== SUA API CONFIGURADA ====== */
 const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
-const supabaseKey = "COLE_SUA_ANON_KEY_AQUI";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
+
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+/* ================================= */
 
 const dataInput = document.getElementById("data");
 const horarioSelect = document.getElementById("horario");
 
+/* GERAR HORÁRIOS */
+function gerarHorarios(dataSelecionada){
+  const diaSemana = new Date(dataSelecionada).getDay();
+
+  if(diaSemana >= 1 && diaSemana <= 5){
+    return ["19:00"];
+  }
+
+  if(diaSemana === 6){
+    return ["08:00","10:00","14:00","16:00","18:00","20:00"];
+  }
+
+  return [];
+}
+
+/* CARREGAR HORÁRIOS DISPONÍVEIS */
 dataInput.addEventListener("change", async () => {
+
   const dataSelecionada = dataInput.value;
-  horarioSelect.innerHTML = '<option value="">Carregando...</option>';
+  horarioSelect.innerHTML = "<option>Carregando...</option>";
 
   const { data } = await supabase
     .from("appointments")
     .select("horario")
     .eq("data", dataSelecionada);
 
-  const ocupados = data.map(item => item.horario);
+  const ocupados = data ? data.map(item => item.horario) : [];
 
-  const diaSemana = new Date(dataSelecionada).getDay();
-  let horarios = [];
-
-  if (diaSemana >= 1 && diaSemana <= 5) {
-    horarios = ["19:00"];
-  }
-
-  if (diaSemana === 6) {
-    horarios = ["08:00","10:00","14:00","16:00","18:00","20:00"];
-  }
-
-  const disponiveis = horarios.filter(h => !ocupados.includes(h));
+  const todos = gerarHorarios(dataSelecionada);
+  const disponiveis = todos.filter(h => !ocupados.includes(h));
 
   horarioSelect.innerHTML = '<option value="">Selecione o horário</option>';
 
-  disponiveis.forEach(h => {
-    const option = document.createElement("option");
-    option.value = h;
-    option.textContent = h;
-    horarioSelect.appendChild(option);
+  if(disponiveis.length === 0){
+    horarioSelect.innerHTML += '<option>Sem horários disponíveis</option>';
+    return;
+  }
+
+  disponiveis.forEach(h=>{
+    const opt = document.createElement("option");
+    opt.value = h;
+    opt.textContent = h;
+    horarioSelect.appendChild(opt);
   });
+
 });
 
-async function agendar() {
+/* AGENDAR */
+async function agendar(){
 
   const nome = document.getElementById("nome").value;
   const telefone = document.getElementById("telefone").value;
@@ -167,15 +191,15 @@ async function agendar() {
 
   const { error } = await supabase
     .from("appointments")
-    .insert([{ nome, telefone, data, horario, servico }]);
+    .insert([{nome,telefone,data,horario,servico}]);
 
   if(error){
-    alert("Erro ao agendar. Tente novamente.");
+    alert("Esse horário já foi agendado!");
     return;
   }
 
   const mensagem =
-`Olá! Novo agendamento 💅
+`Olá 💅 Novo agendamento!
 
 Nome: ${nome}
 Telefone: ${telefone}
@@ -183,11 +207,12 @@ Data: ${data}
 Horário: ${horario}
 Serviço: ${servico}`;
 
-  const url = `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
-  window.open(url, "_blank");
+  window.open(`https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`, "_blank");
 
   alert("Agendamento confirmado!");
+  location.reload();
 }
+
 </script>
 
 </body>
