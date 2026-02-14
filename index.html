@@ -5,98 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mãos De Fada 💅</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box;}
-
 body{
-  margin:0;
-  font-family:'Poppins',sans-serif;
-  overflow:hidden;
-}
-
-.slider{
-  position:fixed;
-  width:100%;
-  height:100vh;
-  background-size:cover;
-  background-position:center;
-  animation:slide 21s infinite;
-}
-
-@keyframes slide{
-  0%{background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
-  33%{background-image:url('https://images.unsplash.com/photo-1604654894610-df63bc536371');}
-  66%{background-image:url('https://images.unsplash.com/photo-1596464716127-f2a82984de30');}
-  100%{background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
-}
-
-.overlay{
-  position:fixed;
-  width:100%;
-  height:100vh;
-  background:linear-gradient(to bottom, rgba(255,255,255,0.92), rgba(252,228,236,0.92));
+  font-family: Arial, sans-serif;
+  background:#fde4ec;
   display:flex;
   justify-content:center;
   align-items:center;
+  height:100vh;
+  margin:0;
 }
 
 .container{
   background:white;
-  padding:35px;
-  border-radius:25px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.25);
+  padding:25px;
+  border-radius:15px;
   width:90%;
-  max-width:420px;
+  max-width:400px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+h2{
   text-align:center;
-}
-
-h1{
   color:#c2185b;
-  margin-bottom:20px;
 }
 
-input,select{
+input, select{
   width:100%;
-  padding:12px;
-  margin:8px 0;
-  border-radius:25px;
-  border:1px solid #eee;
-  font-size:14px;
+  padding:10px;
+  margin:6px 0;
+  border-radius:10px;
+  border:1px solid #ccc;
 }
 
 button{
   width:100%;
-  padding:14px;
-  background:linear-gradient(45deg,#ec407a,#ad1457);
-  border:none;
+  padding:12px;
+  background:#c2185b;
   color:white;
-  font-weight:600;
-  border-radius:30px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
   cursor:pointer;
-  margin-top:12px;
-  transition:.3s;
-}
-
-button:hover{
-  transform:scale(1.05);
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="slider"></div>
-
-<div class="overlay">
 <div class="container">
+<h2>Agendamento 💅</h2>
 
-<h1>Mãos De Fada 💅</h1>
-
-<input type="text" id="nome" placeholder="Seu nome">
-<input type="text" id="telefone" placeholder="Seu telefone">
+<input type="text" id="nome" placeholder="Nome">
+<input type="text" id="telefone" placeholder="Telefone">
 <input type="date" id="data">
 
 <select id="horario">
@@ -104,15 +68,13 @@ button:hover{
 </select>
 
 <select id="servico">
-<option value="">Tipo de serviço</option>
-<option>Só Mão</option>
-<option>Só Pé</option>
+<option value="">Selecione o serviço</option>
+<option>Manicure</option>
+<option>Pedicure</option>
 <option>Mão e Pé</option>
 </select>
 
 <button onclick="agendar()">Confirmar Agendamento</button>
-
-</div>
 </div>
 
 <script>
@@ -120,7 +82,6 @@ button:hover{
 /* ===== SUA CONFIGURAÇÃO SUPABASE ===== */
 const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
-
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 /* ===================================== */
 
@@ -128,13 +89,13 @@ const dataInput = document.getElementById("data");
 const horarioSelect = document.getElementById("horario");
 
 function gerarHorarios(dataSelecionada){
-  const diaSemana = new Date(dataSelecionada + "T00:00:00").getDay();
+  const dia = new Date(dataSelecionada + "T00:00:00").getDay();
 
-  if(diaSemana >= 1 && diaSemana <= 5){
+  if(dia >= 1 && dia <= 5){
     return ["19:00"];
   }
 
-  if(diaSemana === 6){
+  if(dia === 6){
     return ["08:00","10:00","14:00","16:00","18:00","20:00"];
   }
 
@@ -146,20 +107,17 @@ dataInput.addEventListener("change", async () => {
   const dataSelecionada = dataInput.value;
   if(!dataSelecionada) return;
 
-  horarioSelect.innerHTML = "<option>Carregando...</option>";
-
   const { data, error } = await supabaseClient
     .from("appointments")
     .select("horario")
     .eq("data", dataSelecionada);
 
   if(error){
-    console.error(error);
-    alert("Erro ao buscar horários.");
+    alert("Erro ao buscar horários");
     return;
   }
 
-  const ocupados = data ? data.map(item => item.horario) : [];
+  const ocupados = data.map(item => item.horario);
   const todos = gerarHorarios(dataSelecionada);
   const disponiveis = todos.filter(h => !ocupados.includes(h));
 
@@ -192,19 +150,16 @@ async function agendar(){
     return;
   }
 
-  try {
+  const { error } = await supabaseClient
+    .from("appointments")
+    .insert([{ nome, telefone, data, horario, servico }]);
 
-    const { error } = await supabaseClient
-      .from("appointments")
-      .insert([{ nome, telefone, data, horario, servico }]);
+  if(error){
+    alert("Esse horário já foi agendado!");
+    return;
+  }
 
-    if(error){
-      console.error(error);
-      alert("Esse horário já foi agendado!");
-      return;
-    }
-
-    const mensagem =
+  const mensagem =
 `Olá 💅 Novo agendamento!
 
 Nome: ${nome}
@@ -213,14 +168,9 @@ Data: ${data}
 Horário: ${horario}
 Serviço: ${servico}`;
 
-    const url = `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
+  const url = `https://api.whatsapp.com/send?phone=5511964657571&text=${encodeURIComponent(mensagem)}`;
 
-    window.location.href = url;
-
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao finalizar agendamento.");
-  }
+  window.location.href = url;
 }
 
 </script>
