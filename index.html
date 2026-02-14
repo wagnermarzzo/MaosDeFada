@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mãos De Fada 💅</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -17,7 +17,6 @@ body{
   overflow:hidden;
 }
 
-/* SLIDER FEMININO */
 .slider{
   position:fixed;
   width:100%;
@@ -65,7 +64,6 @@ input,select{
   margin:8px 0;
   border-radius:25px;
   border:1px solid #eee;
-  font-size:14px;
 }
 
 button{
@@ -128,7 +126,6 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 const dataInput = document.getElementById("data");
 const horarioSelect = document.getElementById("horario");
 
-/* GERAR HORÁRIOS CORRETAMENTE */
 function gerarHorarios(dataSelecionada){
   const diaSemana = new Date(dataSelecionada + "T00:00:00").getDay();
 
@@ -143,7 +140,6 @@ function gerarHorarios(dataSelecionada){
   return [];
 }
 
-/* CARREGAR HORÁRIOS DISPONÍVEIS */
 dataInput.addEventListener("change", async () => {
 
   const dataSelecionada = dataInput.value;
@@ -151,17 +147,12 @@ dataInput.addEventListener("change", async () => {
 
   horarioSelect.innerHTML = "<option>Carregando...</option>";
 
-  const { data, error } = await supabaseClient
+  const { data } = await supabaseClient
     .from("appointments")
     .select("horario")
     .eq("data", dataSelecionada);
 
-  if(error){
-    horarioSelect.innerHTML = "<option>Erro ao carregar</option>";
-    return;
-  }
-
-  const ocupados = data.map(item => item.horario);
+  const ocupados = data ? data.map(item => item.horario) : [];
   const todos = gerarHorarios(dataSelecionada);
   const disponiveis = todos.filter(h => !ocupados.includes(h));
 
@@ -181,7 +172,6 @@ dataInput.addEventListener("change", async () => {
 
 });
 
-/* AGENDAR */
 async function agendar(){
 
   const nome = document.getElementById("nome").value;
@@ -213,12 +203,13 @@ Data: ${data}
 Horário: ${horario}
 Serviço: ${servico}`;
 
-  window.location.href =
-  `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
-
+  const link = document.createElement("a");
+  link.href = `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
+  document.body.appendChild(link);
+  link.click();
 }
 
 </script>
 
 </body>
-</html>
+  </html>
