@@ -17,7 +17,7 @@ body{
   overflow:hidden;
 }
 
-/* SLIDE FEMININO LUXO */
+/* SLIDER FEMININO */
 .slider{
   position:fixed;
   width:100%;
@@ -118,19 +118,19 @@ button:hover{
 
 <script>
 
-/* ====== SUA API CONFIGURADA ====== */
+/* ===== SUA CONFIGURAÇÃO SUPABASE ===== */
 const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-/* ================================= */
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+/* ===================================== */
 
 const dataInput = document.getElementById("data");
 const horarioSelect = document.getElementById("horario");
 
-/* GERAR HORÁRIOS */
+/* GERAR HORÁRIOS CORRETAMENTE */
 function gerarHorarios(dataSelecionada){
-  const diaSemana = new Date(dataSelecionada).getDay();
+  const diaSemana = new Date(dataSelecionada + "T00:00:00").getDay();
 
   if(diaSemana >= 1 && diaSemana <= 5){
     return ["19:00"];
@@ -147,15 +147,21 @@ function gerarHorarios(dataSelecionada){
 dataInput.addEventListener("change", async () => {
 
   const dataSelecionada = dataInput.value;
+  if(!dataSelecionada) return;
+
   horarioSelect.innerHTML = "<option>Carregando...</option>";
 
-  const { data } = await supabase
+  const { data, error } = await supabaseClient
     .from("appointments")
     .select("horario")
     .eq("data", dataSelecionada);
 
-  const ocupados = data ? data.map(item => item.horario) : [];
+  if(error){
+    horarioSelect.innerHTML = "<option>Erro ao carregar</option>";
+    return;
+  }
 
+  const ocupados = data.map(item => item.horario);
   const todos = gerarHorarios(dataSelecionada);
   const disponiveis = todos.filter(h => !ocupados.includes(h));
 
@@ -189,7 +195,7 @@ async function agendar(){
     return;
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from("appointments")
     .insert([{nome,telefone,data,horario,servico}]);
 
@@ -207,10 +213,9 @@ Data: ${data}
 Horário: ${horario}
 Serviço: ${servico}`;
 
-  window.open(`https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`, "_blank");
+  window.location.href =
+  `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
 
-  alert("Agendamento confirmado!");
-  location.reload();
 }
 
 </script>
