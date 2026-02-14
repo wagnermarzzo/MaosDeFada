@@ -37,7 +37,7 @@ body{
   position:fixed;
   width:100%;
   height:100vh;
-  background:linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(252,228,236,0.9));
+  background:linear-gradient(to bottom, rgba(255,255,255,0.92), rgba(252,228,236,0.92));
   display:flex;
   justify-content:center;
   align-items:center;
@@ -64,6 +64,7 @@ input,select{
   margin:8px 0;
   border-radius:25px;
   border:1px solid #eee;
+  font-size:14px;
 }
 
 button{
@@ -96,8 +97,8 @@ button:hover{
 
 <input type="text" id="nome" placeholder="Seu nome">
 <input type="text" id="telefone" placeholder="Seu telefone">
-
 <input type="date" id="data">
+
 <select id="horario">
 <option value="">Selecione o horário</option>
 </select>
@@ -147,10 +148,16 @@ dataInput.addEventListener("change", async () => {
 
   horarioSelect.innerHTML = "<option>Carregando...</option>";
 
-  const { data } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("appointments")
     .select("horario")
     .eq("data", dataSelecionada);
+
+  if(error){
+    console.error(error);
+    alert("Erro ao buscar horários.");
+    return;
+  }
 
   const ocupados = data ? data.map(item => item.horario) : [];
   const todos = gerarHorarios(dataSelecionada);
@@ -174,10 +181,10 @@ dataInput.addEventListener("change", async () => {
 
 async function agendar(){
 
-  const nome = document.getElementById("nome").value;
-  const telefone = document.getElementById("telefone").value;
-  const data = dataInput.value;
-  const horario = horarioSelect.value;
+  const nome = document.getElementById("nome").value.trim();
+  const telefone = document.getElementById("telefone").value.trim();
+  const data = document.getElementById("data").value;
+  const horario = document.getElementById("horario").value;
   const servico = document.getElementById("servico").value;
 
   if(!nome || !telefone || !data || !horario || !servico){
@@ -185,16 +192,19 @@ async function agendar(){
     return;
   }
 
-  const { error } = await supabaseClient
-    .from("appointments")
-    .insert([{nome,telefone,data,horario,servico}]);
+  try {
 
-  if(error){
-    alert("Esse horário já foi agendado!");
-    return;
-  }
+    const { error } = await supabaseClient
+      .from("appointments")
+      .insert([{ nome, telefone, data, horario, servico }]);
 
-  const mensagem =
+    if(error){
+      console.error(error);
+      alert("Esse horário já foi agendado!");
+      return;
+    }
+
+    const mensagem =
 `Olá 💅 Novo agendamento!
 
 Nome: ${nome}
@@ -203,13 +213,17 @@ Data: ${data}
 Horário: ${horario}
 Serviço: ${servico}`;
 
-  const link = document.createElement("a");
-  link.href = `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
-  document.body.appendChild(link);
-  link.click();
+    const url = `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
+
+    window.location.href = url;
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao finalizar agendamento.");
+  }
 }
 
 </script>
 
 </body>
-  </html>
+</html>
