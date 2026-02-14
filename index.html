@@ -2,175 +2,193 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Mãos De Fada - Agendamento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mãos De Fada</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
-body,html{height:100%;overflow:hidden;color:white;}
-
-.slider{
-position:fixed;
-width:100%;
-height:100%;
-z-index:-2;
-}
-.slider img{
-position:absolute;
-width:100%;
-height:100%;
-object-fit:cover;
-opacity:0;
-transition:opacity 2s ease-in-out;
-}
-.slider img.active{opacity:1;}
-
-.overlay{
-position:fixed;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.65);
-z-index:-1;
+body {
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  overflow:hidden;
 }
 
-.container{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:rgba(0,0,0,0.8);
-padding:30px;
-border-radius:20px;
-width:90%;
-max-width:400px;
-box-shadow:0 0 30px gold;
+.slider {
+  position:fixed;
+  width:100%;
+  height:100vh;
+  background-size:cover;
+  background-position:center;
+  animation:slide 18s infinite;
 }
 
-h1{
-text-align:center;
-color:gold;
-margin-bottom:15px;
+@keyframes slide {
+  0% {background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
+  33% {background-image:url('https://images.unsplash.com/photo-1604654894610-df63bc536371');}
+  66% {background-image:url('https://images.unsplash.com/photo-1596464716127-f2a82984de30');}
+  100% {background-image:url('https://images.unsplash.com/photo-1588776814546-ec7e8f1f6a0f');}
 }
 
-input,select{
-width:100%;
-padding:10px;
-margin:8px 0;
-border:none;
-border-radius:8px;
+.overlay {
+  position:fixed;
+  width:100%;
+  height:100vh;
+  background:rgba(255,255,255,0.85);
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
-button{
-width:100%;
-padding:12px;
-background:gold;
-border:none;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
+.container {
+  background:white;
+  padding:40px;
+  border-radius:25px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.2);
+  width:90%;
+  max-width:400px;
+  text-align:center;
 }
-button:hover{background:#d4af37;}
+
+h1 {
+  color:#d81b60;
+}
+
+input, select {
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:20px;
+  border:1px solid #ddd;
+}
+
+button {
+  width:100%;
+  padding:14px;
+  background:linear-gradient(45deg,#ec407a,#d81b60);
+  border:none;
+  color:white;
+  font-weight:bold;
+  border-radius:30px;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+button:hover {
+  transform:scale(1.05);
+}
 </style>
 </head>
 
 <body>
 
-<div class="slider">
-<img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5" class="active">
-<img src="https://images.unsplash.com/photo-1604654894610-df63bc536371">
-<img src="https://images.unsplash.com/photo-1589987607627-3c31f0d7f2b2">
-</div>
+<div class="slider"></div>
 
-<div class="overlay"></div>
-
+<div class="overlay">
 <div class="container">
-<h1>Mãos De Fada</h1>
+<h1>Mãos De Fada 💅</h1>
 
-<input type="text" id="nome" placeholder="Seu Nome" required>
-<input type="text" id="telefone" placeholder="Telefone" required>
+<input type="text" id="nome" placeholder="Seu nome" required>
+<input type="text" id="telefone" placeholder="Seu telefone" required>
+
 <input type="date" id="data" required>
-<select id="horario"></select>
+<select id="horario">
+<option value="">Selecione o horário</option>
+</select>
 
 <select id="servico">
-<option>Só Mão</option>
-<option>Só Pé</option>
-<option>Mão + Pé</option>
+<option value="">Tipo de serviço</option>
+<option value="Só Mão">Só Mão</option>
+<option value="Só Pé">Só Pé</option>
+<option value="Mão e Pé">Mão e Pé</option>
 </select>
 
 <button onclick="agendar()">Confirmar Agendamento</button>
+
+</div>
 </div>
 
 <script>
 const supabaseUrl = "https://mziwflpxhmslmrogdqlr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aXdmbHB4aG1zbG1yb2dkcWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNDc0ODgsImV4cCI6MjA4NjYyMzQ4OH0.jaXfxN6unS62oDAMlJI4sMhnEQzJ2waUI93f0w5MmYc";
+const supabaseKey = "COLE_SUA_ANON_KEY_AQUI";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-const { createClient } = supabase;
-const db = createClient(supabaseUrl, supabaseKey);
+const dataInput = document.getElementById("data");
+const horarioSelect = document.getElementById("horario");
 
-// SLIDE AUTOMÁTICO
-let imagens = document.querySelectorAll(".slider img");
-let index = 0;
-setInterval(()=>{
-imagens[index].classList.remove("active");
-index = (index+1)%imagens.length;
-imagens[index].classList.add("active");
-},5000);
+dataInput.addEventListener("change", async () => {
+  const dataSelecionada = dataInput.value;
+  horarioSelect.innerHTML = '<option value="">Carregando...</option>';
 
-// HORÁRIOS INTELIGENTES
-document.getElementById("data").addEventListener("change", async function(){
-let dataSelecionada = this.value;
-let dia = new Date(dataSelecionada).getDay();
-let select = document.getElementById("horario");
-select.innerHTML="";
+  const { data } = await supabase
+    .from("appointments")
+    .select("horario")
+    .eq("data", dataSelecionada);
 
-let horarios = [];
+  const ocupados = data.map(item => item.horario);
 
-if(dia>=1 && dia<=5){ horarios=["19:00"]; }
-if(dia==6){ horarios=["08:00","10:00","14:00","16:00","18:00","20:00"]; }
+  const diaSemana = new Date(dataSelecionada).getDay();
+  let horarios = [];
 
-for(let h of horarios){
-let { data } = await db
-.from("appointments")
-.select("*")
-.eq("data", dataSelecionada)
-.eq("horario", h);
+  if (diaSemana >= 1 && diaSemana <= 5) {
+    horarios = ["19:00"];
+  }
 
-if(data.length==0){
-let option=document.createElement("option");
-option.value=h;
-option.textContent=h;
-select.appendChild(option);
-}
-}
+  if (diaSemana === 6) {
+    horarios = ["08:00","10:00","14:00","16:00","18:00","20:00"];
+  }
+
+  const disponiveis = horarios.filter(h => !ocupados.includes(h));
+
+  horarioSelect.innerHTML = '<option value="">Selecione o horário</option>';
+
+  disponiveis.forEach(h => {
+    const option = document.createElement("option");
+    option.value = h;
+    option.textContent = h;
+    horarioSelect.appendChild(option);
+  });
 });
 
-// AGENDAR
-async function agendar(){
-let nome=document.getElementById("nome").value;
-let telefone=document.getElementById("telefone").value;
-let data=document.getElementById("data").value;
-let horario=document.getElementById("horario").value;
-let servico=document.getElementById("servico").value;
+async function agendar() {
 
-if(!nome || !telefone || !data || !horario){
-alert("Preencha todos os campos!");
-return;
-}
+  const nome = document.getElementById("nome").value;
+  const telefone = document.getElementById("telefone").value;
+  const data = dataInput.value;
+  const horario = horarioSelect.value;
+  const servico = document.getElementById("servico").value;
 
-let { error } = await db.from("appointments").insert([
-{ nome, telefone, data, horario, servico }
-]);
+  if(!nome || !telefone || !data || !horario || !servico){
+    alert("Preencha todos os campos!");
+    return;
+  }
 
-if(error){
-alert("Horário já agendado!");
-return;
-}
+  const { error } = await supabase
+    .from("appointments")
+    .insert([{ nome, telefone, data, horario, servico }]);
 
-let mensagem=`Novo agendamento Mãos De Fada\nNome: ${nome}\nData: ${data}\nHorário: ${horario}\nServiço: ${servico}`;
-window.location.href=`https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
+  if(error){
+    alert("Erro ao agendar. Tente novamente.");
+    return;
+  }
+
+  const mensagem =
+`Olá! Novo agendamento 💅
+
+Nome: ${nome}
+Telefone: ${telefone}
+Data: ${data}
+Horário: ${horario}
+Serviço: ${servico}`;
+
+  const url = `https://wa.me/5511964657571?text=${encodeURIComponent(mensagem)}`;
+  window.open(url, "_blank");
+
+  alert("Agendamento confirmado!");
 }
 </script>
 
 </body>
-  </html>
+</html>
